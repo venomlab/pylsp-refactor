@@ -1,6 +1,5 @@
 import typing
 from dataclasses import dataclass
-from gc import collect
 
 from pylsp.workspace import Document
 
@@ -13,7 +12,7 @@ class Position:
     column: int
 
     @classmethod
-    def from_range_item(cls, ri) -> "Position":
+    def from_range_item(cls, ri: dict[str, int]) -> "Position":
         return cls(line=ri["line"], column=ri["character"])
 
 
@@ -73,9 +72,9 @@ def is_a_function_call(
 def get_word_at_position(document: Document, position: Position) -> typing.Optional[TextPosition]:
     line = document.lines[position.line]
     start = end = position.column
-    while WORD_RE.fullmatch(line, start - 1, end):
+    while WORD_RE.fullmatch(line, start - 1, end) and start > 0:
         start -= 1
-    while WORD_RE.fullmatch(line, start, end + 1):
+    while WORD_RE.fullmatch(line, start, end + 1) and end < len(line):
         end += 1
     word = line[start:end]
     if not WORD_RE.fullmatch(word):
