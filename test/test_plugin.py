@@ -4,44 +4,15 @@ from pylsp_refactor import plugin
 from test.conftest import *
 
 
-def test_definitions(config, workspace, document):
-    position = {"line": 3, "character": 6}
-
-    response = plugin.pylsp_definitions(
-        config=config,
-        workspace=workspace,
-        document=document,
-        position=position,
-    )
-
-    expected = [
-        {
-            "uri": ANY,
-            "range": {
-                "start": {
-                    "line": ANY,
-                    "character": ANY,
-                },
-                "end": {
-                    "line": ANY,
-                    "character": ANY,
-                },
-            },
-        },
-    ]
-
-    assert response == expected
-
-
 def test_code_action(config, workspace, document, code_action_context):
     selection = {
         "start": {
-            "line": 3,
-            "character": 0,
+            "line": 6,
+            "character": 5,
         },
         "end": {
-            "line": 4,
-            "character": 0,
+            "line": 6,
+            "character": 5,
         },
     }
 
@@ -55,10 +26,10 @@ def test_code_action(config, workspace, document, code_action_context):
 
     expected = [
         {
-            "title": "Extract method",
-            "kind": "refactor.extract",
+            "title": "Introduce variable",
+            "kind": "refactor.introduce",
             "command": {
-                "command": "example.refactor.extract",
+                "command": "pylsp_refactor.refactor.introduce.variable",
                 "arguments": [document.uri, selection],
             },
         },
@@ -84,10 +55,10 @@ def test_code_action(config, workspace, document, code_action_context):
                     document.uri: [
                         {
                             "range": {
-                                "start": {"line": 3, "character": 0},
-                                "end": {"line": 4, "character": 0},
+                                "start": {"line": 6, "character": 4},
+                                "end": {"line": 6, "character": 9},
                             },
-                            "newText": "replacement text",
+                            "newText": "foo_result = foo()",
                         },
                     ],
                 },

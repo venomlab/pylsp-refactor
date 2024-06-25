@@ -1,3 +1,9 @@
 import sys
+
+def foo():
+    return "foo"
+
 def main():
-    print(sys.stdin.read())
+    foo()
+    buzz = "foo"
+    bar = foo()

@@ -1,13 +1,17 @@
 import logging
+from typing import Any
 
-from pylsp import hookimpl, uris
+from pylsp import hookimpl
+from pylsp.config.config import Config
+from pylsp.workspace import Document, Workspace
 
+from pylsp_refactor import utils
 
 logger = logging.getLogger(__name__)
 
 
 @hookimpl
-def pylsp_settings():
+def pylsp_settings() -> dict[str, dict[str, dict[str, bool]]]:
     logger.info("Initializing pylsp_refactor")
 
     # Disable default plugins that conflicts with our plugin
@@ -33,20 +37,40 @@ def pylsp_settings():
             # "signature": {"enabled": False},
             # "symbols": {"enabled": False},
             # "yapf_format": {"enabled": False},
+            "pylsp_refactor": {"enabled": True},
         },
     }
 
 
 @hookimpl
-def pylsp_code_actions(config, workspace, document, range, context):
-    logger.info("textDocument/codeAction: %s %s %s", document, range, context)
+def pylsp_commands(config, workspace) -> list[str]:
+    return [
+        "pylsp_refactor.refactor.introduce.variable",
+    ]
 
+
+@hookimpl
+def pylsp_code_actions(
+    config: Config,
+    workspace: Workspace,
+    document: Document,
+    range: dict[str, Any],
+    context: dict[str, Any],
+) -> list[dict[str, Any]]:
+    logger.info("textDocument/codeAction: %s %s %s", document, range, context)
+    start, end = utils.parse_range(range)
+    if start != end:
+        return []
+    if utils.is_any_def(document, start.line):
+        return []
+    if utils.is_empty_line(document, start.line):
+        return []
     return [
         {
-            "title": "Extract method",
-            "kind": "refactor.extract",
+            "title": "Introduce variable",
+            "kind": "refactor.introduce",
             "command": {
-                "command": "example.refactor.extract",
+                "command": "pylsp_refactor.refactor.introduce.variable",
                 "arguments": [document.uri, range],
             },
         },
@@ -54,50 +78,31 @@ def pylsp_code_actions(config, workspace, document, range, context):
 
 
 @hookimpl
-def pylsp_execute_command(config, workspace, command, arguments):
+def pylsp_execute_command(config: Config, workspace: Workspace, command, arguments):
     logger.info("workspace/executeCommand: %s %s", command, arguments)
 
-    if command == "example.refactor.extract":
-        current_document, range = arguments
-
+    if command == "pylsp_refactor.refactor.introduce.variable":
+        doc_uri, range = arguments
+        document: Document = workspace.get_document(doc_uri)
+        start, end = utils.parse_range(range)
+        new_var_name = "new_variable"
+        if start == end:
+            word = utils.get_word_at_position(document, start)
+            if word and utils.is_a_function_call(document, word):
+                new_var_name = f"{word.text}_result"
+        existing_text = utils.get_line_indented_range(document, start.line)
+        new_text = f"{new_var_name} = {existing_text.text}"
+        new_range = existing_text.to_range()
         workspace_edit = {
             "changes": {
-                current_document: [
+                doc_uri: [
                     {
-                        "range": range,
-                        "newText": "replacement text",
+                        "range": new_range,
+                        "newText": new_text,
                     },
-                ]
-            }
+                ],
+            },
         }
 
         logger.info("applying workspace edit: %s %s", command, workspace_edit)
         workspace.apply_edit(workspace_edit)
-
-
-@hookimpl
-def pylsp_definitions(config, workspace, document, position):
-    logger.info("textDocument/definition: %s %s", document, position)
-
-    filename = __file__
-    uri = uris.uri_with(document.uri, path=filename)
-    with open(filename) as f:
-        lines = f.readlines()
-        for lineno, line in enumerate(lines):
-            if "def pylsp_definitions" in line:
-                break
-    return [
-        {
-            "uri": uri,
-            "range": {
-                "start": {
-                    "line": lineno,
-                    "character": 4,
-                },
-                "end": {
-                    "line": lineno,
-                    "character": line.find(")") + 1,
-                },
-            }
-        }
-    ]
