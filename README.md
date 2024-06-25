@@ -1,6 +1,8 @@
 # pylsp-refactor
 
-Package description for PyPI
+**WORK IN PROGRESS. IT DOES NOT HAVE ANY STABLE VERSION YET**
+
+Refactoring tools for Python LSP Server
 
 This is a plugin for [Python LSP Server](https://github.com/python-lsp/python-lsp-server).
 
@@ -60,11 +62,10 @@ proxy requests to a tcp-mode language server:
     nc localhost 7090
 
 TODO: document how to connect to pylsp via pylsp from LSP clients.
+
 ### Testing 
 
 Run `pytest` to run plugin tests.
-
-
 
 ## Credits
 
