@@ -2,7 +2,6 @@ import logging
 from typing import Any
 
 from pylsp import hookimpl
-from pylsp.config.config import Config
 from pylsp.workspace import Document, Workspace
 
 from pylsp_refactor import utils
@@ -51,7 +50,7 @@ def pylsp_commands(config, workspace) -> list[str]:
 
 @hookimpl
 def pylsp_code_actions(
-    config: Config,
+    config,
     workspace: Workspace,
     document: Document,
     range: dict[str, Any],
@@ -78,7 +77,7 @@ def pylsp_code_actions(
 
 
 @hookimpl
-def pylsp_execute_command(config: Config, workspace: Workspace, command, arguments):
+def pylsp_execute_command(config, workspace: Workspace, command, arguments):
     logger.info("workspace/executeCommand: %s %s", command, arguments)
 
     if command == "pylsp_refactor.refactor.introduce.variable":
