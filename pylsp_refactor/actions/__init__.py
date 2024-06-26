@@ -6,6 +6,7 @@ from pylsp.workspace import Document, Workspace
 from pylsp_refactor.utils import Range
 
 from .base import CodeAction
+from .introduce_variable import IntroduceVariable
 
 
 class CodeActionsCollection:
@@ -30,7 +31,7 @@ class CodeActionsCollection:
             actions.extend(ca.generate_code_actions())
         return actions
 
-    def commands(self) -> list[str]:
+    def commands(self, config: dict[str, Any]) -> list[str]:
         commands: set[str] = {ca_type.command for ca_type in self._code_actions}
         commands.update(ca_type.command for ca_type in self._code_actions)
         return sorted(commands)
@@ -47,3 +48,7 @@ class CodeActionsCollection:
             if ca_type.command == command:
                 ca = ca_type(config, workspace, document, range)
                 ca.apply()
+
+
+code_actions = CodeActionsCollection()
+code_actions.register(IntroduceVariable)

@@ -29,7 +29,7 @@ class Range:
             },
             "end": {
                 "line": self.end.line,
-                "character": self.end.column + 1,
+                "character": self.end.column,
             },
         }
 
@@ -68,7 +68,7 @@ def is_a_function_call(
     if is_a_function_def(document, word_position.start.line):
         return None
     line = document.lines[word_position.end.line]
-    if OPEN_PARENTHESI_RE.match(line, word_position.end.column + 1) is None:
+    if OPEN_PARENTHESI_RE.match(line, word_position.end.column) is None:
         return None
     return word_position
 
@@ -91,7 +91,7 @@ def get_word_at_position(document: Document, position: Position) -> typing.Optio
         ),
         end=Position(
             line=position.line,
-            column=end - 1,
+            column=end,
         ),
     )
 
@@ -105,5 +105,5 @@ def get_line_indented_range(document: Document, line_no: int) -> TextPosition:
     return TextPosition(
         text=line[start:end],
         start=Position(line=line_no, column=start),
-        end=Position(line=line_no, column=end - 1),
+        end=Position(line=line_no, column=end),
     )
