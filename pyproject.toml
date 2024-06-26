@@ -12,6 +12,7 @@ pylsp_refactor = "pylsp_refactor.plugin"
 [tool.poetry.dependencies]
 python = "^3.10"
 python-lsp-server = "*"
+jedi = "*"
 
 
 [tool.poetry.group.dev.dependencies]

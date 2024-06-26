@@ -15,6 +15,12 @@ class Position:
     def from_range_item(cls, ri: dict[str, int]) -> "Position":
         return cls(line=ri["line"], column=ri["character"])
 
+    def to_position(self) -> dict[str, int]:
+        return {
+            "line": self.line,
+            "character": self.column,
+        }
+
 
 @dataclass
 class Range:
@@ -23,14 +29,8 @@ class Range:
 
     def to_range(self) -> dict[str, dict[str, int]]:
         return {
-            "start": {
-                "line": self.start.line,
-                "character": self.start.column,
-            },
-            "end": {
-                "line": self.end.line,
-                "character": self.end.column,
-            },
+            "start": self.start.to_position(),
+            "end": self.end.to_position(),
         }
 
 
