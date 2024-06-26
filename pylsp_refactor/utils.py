@@ -17,8 +17,7 @@ class Position:
 
 
 @dataclass
-class TextPosition:
-    text: str
+class Range:
     start: Position
     end: Position
 
@@ -35,8 +34,13 @@ class TextPosition:
         }
 
 
-def parse_range(range) -> tuple[Position, Position]:
-    return Position.from_range_item(range["start"]), Position.from_range_item(range["end"])
+@dataclass
+class TextPosition(Range):
+    text: str
+
+
+def parse_range(range: dict[str, dict[str, int]]) -> Range:
+    return Range(start=Position.from_range_item(range["start"]), end=Position.from_range_item(range["end"]))
 
 
 def is_a_class_def(document: Document, line_no: int) -> bool:
