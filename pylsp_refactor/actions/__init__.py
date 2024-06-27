@@ -6,7 +6,7 @@ from pylsp.workspace import Document, Workspace
 from pylsp_refactor.utils import Range
 
 from .base import CodeAction
-from .introduce_variable import IntroduceVariable
+from .introduce_variable_under_cursor import IntroduceVariableUnderCursor
 
 
 class CodeActionsCollection:
@@ -43,12 +43,13 @@ class CodeActionsCollection:
         document: Document,
         range: Range,
         command: str,
+        arguments: tuple[str, dict[str, int], ...],
     ) -> None:
         for ca_type in self._code_actions:
             if ca_type.command == command:
                 ca = ca_type(config, workspace, document, range)
-                ca.apply()
+                ca.apply(arguments)
 
 
 code_actions = CodeActionsCollection()
-code_actions.register(IntroduceVariable)
+code_actions.register(IntroduceVariableUnderCursor)

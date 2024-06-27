@@ -23,24 +23,10 @@ class CodeAction(abc.ABC):
         self._document = document
         self._range = range
 
-    def generate_code_actions(self) -> list[dict[str, Any]]:
-        if not self._should_propose_action():
-            return []
-        return [
-            {
-                "title": self.title,
-                "kind": self.kind,
-                "command": {
-                    "command": self.command,
-                    "arguments": [self._document.uri, self._range.to_range()],
-                },
-            },
-        ]
-
     @abc.abstractmethod
-    def apply(self) -> None:
+    def generate_code_actions(self) -> list[dict[str, Any]]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def _should_propose_action(self) -> bool:
+    def apply(self, arguments: tuple[str, dict[str, int], ...]) -> None:
         raise NotImplementedError

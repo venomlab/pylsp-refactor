@@ -47,11 +47,12 @@ def pylsp_execute_command(
     config: dict[str, Any],
     workspace: Workspace,
     command: str,
-    arguments: tuple[str, dict[str, Any]],
+    arguments: tuple[str, dict[str, Any], ...],
 ) -> None:
     logger.info("workspace/executeCommand: %s %s", command, arguments)
     if command in code_actions.commands(config):
-        doc_uri, range = arguments
+        doc_uri = arguments[0]
+        range = arguments[1]
         document: Document = workspace.get_document(doc_uri)
         range_ = utils.parse_range(range)
-        code_actions.apply(config, workspace, document, range_, command)
+        code_actions.apply(config, workspace, document, range_, command, arguments)
