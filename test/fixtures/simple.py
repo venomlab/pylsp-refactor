@@ -1,9 +1,13 @@
-import sys
+import base64
 
-def foo():
+def get_foo():
     return "foo"
 
 def main():
-    foo()
-    buzz = "foo"
-    bar = foo()
+    base64.b64encode("asd")
+    get_foo()
+
+def something():
+    return {
+        "asd": get_foo(),
+    }

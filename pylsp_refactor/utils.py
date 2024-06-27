@@ -1,9 +1,17 @@
+import logging
 import typing
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
-from pylsp.workspace import Document
+from jedi import Script
+from jedi.api.classes import Name
+from jedi.api.refactoring import Refactoring
+from pylsp.workspace import Document, Workspace
 
-from pylsp_refactor.regexes import OPEN_PARENTHESI_RE, WHITESPACE_RE, WORD_RE
+from pylsp_refactor.regexes import FUNC_CALL_RE
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -20,6 +28,9 @@ class Position:
             "line": self.line,
             "character": self.column,
         }
+
+    def to_jedi(self) -> tuple[int, int]:
+        return self.line + 1, self.column
 
 
 @dataclass
@@ -43,6 +54,53 @@ def parse_range(range: dict[str, dict[str, int]]) -> Range:
     return Range(start=Position.from_range_item(range["start"]), end=Position.from_range_item(range["end"]))
 
 
+def get_script(document: Document) -> Script:
+    return document.jedi_script(
+        use_document_path=True,
+    )
+
+
+def find_function_call_at_line(document: Document, line_no: int) -> typing.Optional[TextPosition]:
+    line: str = document.lines[line_no]
+    match = FUNC_CALL_RE.search(line)
+    if not match:
+        return None
+    start, end = match.span(1)
+    jedi_line, jedi_column = Position(line_no, start).to_jedi()
+    script = get_script(document)
+    infers: list[Name] = script.infer(jedi_line, jedi_column)
+    for infer in infers:
+        logger.error("%s::%s", infer.line, jedi_line)
+        if infer.type == "function" and (infer.module_path != Path(document.path) or infer.line != jedi_line):
+            return TextPosition(Position(line_no, start), Position(line_no, end), infer.name)
+    return None
+
+
+def get_text_range_between_sources(original_source: str, new_source: str, original_line_no: int) -> TextPosition:
+    original_lines = original_source.splitlines()
+    new_lines = new_source.splitlines()
+
+    diff_start_line = 0
+    while diff_start_line < original_line_no and original_lines[diff_start_line] == new_lines[diff_start_line]:
+        diff_start_line += 1
+    start = Position(diff_start_line, 0)
+    end = Position(original_line_no, len(original_lines[original_line_no]))
+    if diff_start_line == original_line_no:
+        text = new_lines[diff_start_line]
+        return TextPosition(start, end, text)
+    collect_lines = []
+    difference_counter = diff_start_line
+    while original_lines[diff_start_line] != new_lines[difference_counter] and difference_counter < len(new_lines):
+        collect_lines.append(new_lines[difference_counter])
+        difference_counter += 1
+    while diff_start_line <= original_line_no:
+        collect_lines.append(new_lines[difference_counter])
+        diff_start_line += 1
+        difference_counter += 1
+    text = "\n".join(collect_lines)
+    return TextPosition(start, end, text)
+
+
 def is_a_class_def(document: Document, line_no: int) -> bool:
     line: str = document.lines[line_no]
     return line.lstrip().startswith("class ")
@@ -53,57 +111,6 @@ def is_a_function_def(document: Document, line_no: int) -> bool:
     return line.lstrip().startswith("def ")
 
 
-def is_any_def(document: Document, line_no: int) -> bool:
-    return is_a_function_def(document, line_no) or is_a_class_def(document, line_no)
-
-
-def is_empty_line(document: Document, line_no: int) -> bool:
-    return not document.lines[line_no].strip()
-
-
-def is_a_function_call(
-    document: Document,
-    word_position: TextPosition,
-) -> typing.Optional[TextPosition]:
-    if is_a_function_def(document, word_position.start.line):
-        return None
-    line = document.lines[word_position.end.line]
-    if OPEN_PARENTHESI_RE.match(line, word_position.end.column) is None:
-        return None
-    return word_position
-
-
-def get_word_at_position(document: Document, position: Position) -> typing.Optional[TextPosition]:
-    line = document.lines[position.line]
-    start = end = position.column
-    while WORD_RE.fullmatch(line, start - 1, end) and start > 0:
-        start -= 1
-    while WORD_RE.fullmatch(line, start, end + 1) and end < len(line):
-        end += 1
-    word = line[start:end]
-    if not WORD_RE.fullmatch(word):
-        return None
-    return TextPosition(
-        text=word,
-        start=Position(
-            line=position.line,
-            column=start,
-        ),
-        end=Position(
-            line=position.line,
-            column=end,
-        ),
-    )
-
-
-def get_line_indented_range(document: Document, line_no: int) -> TextPosition:
-    line = document.lines[line_no]
-    start = 0
-    end = len(line.rstrip())
-    while WHITESPACE_RE.match(line[start]):
-        start += 1
-    return TextPosition(
-        text=line[start:end],
-        start=Position(line=line_no, column=start),
-        end=Position(line=line_no, column=end),
-    )
+def is_a_return_statement(document: Document, line_no: int) -> bool:
+    line: str = document.lines[line_no]
+    return line.lstrip().startswith("return ")
