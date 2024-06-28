@@ -7,9 +7,6 @@ from pylsp.workspace import Document
 
 from pylsp_refactor.regexes import CAMEL_TO_SNAKE_RE, FUNC_CALL_RE
 
-if typing.TYPE_CHECKING:
-    from jedi.api.classes import Name
-
 
 @dataclass
 class Position:
@@ -71,7 +68,7 @@ def find_call_at_line(document: Document, line_no: int) -> typing.Optional[Call]
     start, end = match.span(1)
     jedi_line, jedi_column = Position(line_no, start).to_jedi()
     script = get_script(document)
-    infers: list[Name] = script.infer(jedi_line, jedi_column)
+    infers = script.infer(jedi_line, jedi_column)
     for infer in infers:
         if infer.type in ["function", "class"] and (
             infer.module_path != Path(document.path) or infer.line != jedi_line
