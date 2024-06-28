@@ -1,5 +1,5 @@
 import logging
-from typing import Any
+from typing import Any, no_type_check
 
 from pylsp import hookimpl
 from pylsp.workspace import Document, Workspace
@@ -10,6 +10,7 @@ from pylsp_refactor.actions import code_actions
 logger = logging.getLogger(__name__)
 
 
+@no_type_check
 @hookimpl
 def pylsp_settings() -> dict[str, dict[str, dict[str, bool]]]:
     logger.info("Initializing pylsp_refactor")
@@ -22,17 +23,22 @@ def pylsp_settings() -> dict[str, dict[str, dict[str, bool]]]:
     }
 
 
+@no_type_check
 @hookimpl
-def pylsp_commands(config, workspace) -> list[str]:
+def pylsp_commands(
+    config: Any,
+    workspace: Workspace,
+) -> list[str]:
     return code_actions.commands(config)
 
 
+@no_type_check
 @hookimpl
 def pylsp_code_actions(
-    config: dict[str, Any],
+    config: Any,
     workspace: Workspace,
     document: Document,
-    range: dict[str, Any],
+    range: dict[str, Any],  # noqa: A002
     context: dict[str, Any],
 ) -> list[dict[str, Any]]:
     logger.info("textDocument/codeAction: %s %s %s", document, range, context)
@@ -42,9 +48,10 @@ def pylsp_code_actions(
     return response
 
 
+@no_type_check
 @hookimpl
 def pylsp_execute_command(
-    config: dict[str, Any],
+    config: Any,
     workspace: Workspace,
     command: str,
     arguments: tuple[str, dict[str, Any], ...],
@@ -52,7 +59,7 @@ def pylsp_execute_command(
     logger.info("workspace/executeCommand: %s %s", command, arguments)
     if command in code_actions.commands(config):
         doc_uri = arguments[0]
-        range = arguments[1]
-        document: Document = workspace.get_document(doc_uri)
-        range_ = utils.parse_range(range)
+        input_range = arguments[1]
+        document = workspace.get_document(doc_uri)
+        range_ = utils.parse_range(input_range)
         code_actions.apply(config, workspace, document, range_, command, arguments)

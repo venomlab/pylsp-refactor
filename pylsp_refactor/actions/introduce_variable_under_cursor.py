@@ -1,7 +1,5 @@
 from typing import Any
 
-from jedi.api.refactoring import Refactoring
-
 from pylsp_refactor import utils
 
 from .base import CodeAction
@@ -12,8 +10,8 @@ class IntroduceVariableUnderCursor(CodeAction):
     kind = "refactor.introduce"
     command = "pylsp_refactor.refactor.introduce_variable_under_cursor"
 
-    def apply(self, arguments: tuple[str, dict[str, int], ...]) -> None:
-        func_name: str = arguments[2].lower()
+    def apply(self, arguments: tuple[str, dict[str, int], Any]) -> None:
+        func_name = str(arguments[2]).lower()
         if func_name.startswith("get_") and len(func_name) > 4:
             variable_name = func_name[4:]
         elif func_name.startswith("get") and len(func_name) > 3:
@@ -26,7 +24,7 @@ class IntroduceVariableUnderCursor(CodeAction):
             variable_name = "new_variable"
         script = utils.get_script(self._document)
         jedi_line, jedi_column = self._range.start.to_jedi()
-        refactoring: Refactoring = script.extract_variable(
+        refactoring = script.extract_variable(
             jedi_line,
             jedi_column,
             new_name=variable_name,

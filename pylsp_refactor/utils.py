@@ -1,17 +1,14 @@
-import logging
 import typing
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from jedi import Script
-from jedi.api.classes import Name
-from jedi.api.refactoring import Refactoring
-from pylsp.workspace import Document, Workspace
+from pylsp.workspace import Document
 
 from pylsp_refactor.regexes import FUNC_CALL_RE
 
-logger = logging.getLogger(__name__)
+if typing.TYPE_CHECKING:
+    from jedi.api.classes import Name
 
 
 @dataclass
@@ -50,8 +47,8 @@ class TextPosition(Range):
     text: str
 
 
-def parse_range(range: dict[str, dict[str, int]]) -> Range:
-    return Range(start=Position.from_range_item(range["start"]), end=Position.from_range_item(range["end"]))
+def parse_range(range_: dict[str, dict[str, int]]) -> Range:
+    return Range(start=Position.from_range_item(range_["start"]), end=Position.from_range_item(range_["end"]))
 
 
 def get_script(document: Document) -> Script:
@@ -70,7 +67,6 @@ def find_function_call_at_line(document: Document, line_no: int) -> typing.Optio
     script = get_script(document)
     infers: list[Name] = script.infer(jedi_line, jedi_column)
     for infer in infers:
-        logger.error("%s::%s", infer.line, jedi_line)
         if infer.type == "function" and (infer.module_path != Path(document.path) or infer.line != jedi_line):
             return TextPosition(Position(line_no, start), Position(line_no, end), infer.name)
     return None

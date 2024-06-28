@@ -23,15 +23,15 @@ class CodeActionsCollection:
         config: dict[str, Any],
         workspace: Workspace,
         document: Document,
-        range: Range,
+        range_: Range,
     ) -> list[dict[str, Any]]:
         actions = []
         for ca_type in self._code_actions:
-            ca = ca_type(config, workspace, document, range)
+            ca = ca_type(config, workspace, document, range_)
             actions.extend(ca.generate_code_actions())
         return actions
 
-    def commands(self, config: dict[str, Any]) -> list[str]:
+    def commands(self, config: Any) -> list[str]:  # noqa: ARG002
         commands: set[str] = {ca_type.command for ca_type in self._code_actions}
         commands.update(ca_type.command for ca_type in self._code_actions)
         return sorted(commands)
@@ -41,13 +41,13 @@ class CodeActionsCollection:
         config: dict[str, Any],
         workspace: Workspace,
         document: Document,
-        range: Range,
+        range_: Range,
         command: str,
-        arguments: tuple[str, dict[str, int], ...],
+        arguments: tuple[str, dict[str, int], Any],
     ) -> None:
         for ca_type in self._code_actions:
             if ca_type.command == command:
-                ca = ca_type(config, workspace, document, range)
+                ca = ca_type(config, workspace, document, range_)
                 ca.apply(arguments)
 
 

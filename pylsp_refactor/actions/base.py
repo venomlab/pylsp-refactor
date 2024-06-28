@@ -16,17 +16,17 @@ class CodeAction(abc.ABC):
         config: dict[str, Any],
         workspace: Workspace,
         document: Document,
-        range: Range,
+        range_: Range,
     ) -> None:
         self._config = config
         self._workspace = workspace
         self._document = document
-        self._range = range
+        self._range = range_
 
     @abc.abstractmethod
     def generate_code_actions(self) -> list[dict[str, Any]]:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def apply(self, arguments: tuple[str, dict[str, int], ...]) -> None:
+    def apply(self, arguments: tuple[str, dict[str, int], Any]) -> None:
         raise NotImplementedError
