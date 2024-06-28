@@ -11,15 +11,16 @@ class IntroduceVariableUnderCursor(CodeAction):
     command = "pylsp_refactor.refactor.introduce_variable_under_cursor"
 
     def apply(self, arguments: tuple[str, dict[str, int], Any]) -> None:
-        func_name = str(arguments[2]).lower()
-        if func_name.startswith("get_") and len(func_name) > 4:
-            variable_name = func_name[4:]
-        elif func_name.startswith("get") and len(func_name) > 3:
-            variable_name = func_name[3:]
-        elif func_name.startswith("find_") and len(func_name) > 5:
-            variable_name = func_name[5:]
-        elif func_name.startswith("find") and len(func_name) > 4:
-            variable_name = func_name[4:]
+        callee_name, callee_type = arguments[2]
+        callee_name_snake = utils.camel_to_snake(callee_name)
+        if callee_type == "class":
+            variable_name = callee_name_snake
+            if variable_name == callee_name:
+                variable_name += "_obj"
+        elif callee_name_snake.startswith("get_") and len(callee_name) > 4:
+            variable_name = callee_name[4:]
+        elif callee_name_snake.startswith("find_") and len(callee_name) > 5:
+            variable_name = callee_name[5:]
         else:
             variable_name = "new_variable"
         script = utils.get_script(self._document)
@@ -50,8 +51,8 @@ class IntroduceVariableUnderCursor(CodeAction):
             return []
         if utils.is_a_return_statement(self._document, self._range.start.line):
             return []
-        func_call = utils.find_function_call_at_line(self._document, self._range.start.line)
-        if func_call is None:
+        obj_call = utils.find_call_at_line(self._document, self._range.start.line)
+        if obj_call is None:
             return []
         return [
             {
@@ -59,7 +60,14 @@ class IntroduceVariableUnderCursor(CodeAction):
                 "kind": self.kind,
                 "command": {
                     "command": self.command,
-                    "arguments": [self._document.uri, func_call.to_range(), func_call.text],
+                    "arguments": [
+                        self._document.uri,
+                        obj_call.to_range(),
+                        (
+                            obj_call.name,
+                            obj_call.type_,
+                        ),
+                    ],
                 },
             },
         ]

@@ -5,7 +5,7 @@ from pathlib import Path
 from jedi import Script
 from pylsp.workspace import Document
 
-from pylsp_refactor.regexes import FUNC_CALL_RE
+from pylsp_refactor.regexes import CAMEL_TO_SNAKE_RE, FUNC_CALL_RE
 
 if typing.TYPE_CHECKING:
     from jedi.api.classes import Name
@@ -47,6 +47,12 @@ class TextPosition(Range):
     text: str
 
 
+@dataclass
+class Call(Range):
+    name: str
+    type_: typing.Literal["function", "class"]
+
+
 def parse_range(range_: dict[str, dict[str, int]]) -> Range:
     return Range(start=Position.from_range_item(range_["start"]), end=Position.from_range_item(range_["end"]))
 
@@ -57,7 +63,7 @@ def get_script(document: Document) -> Script:
     )
 
 
-def find_function_call_at_line(document: Document, line_no: int) -> typing.Optional[TextPosition]:
+def find_call_at_line(document: Document, line_no: int) -> typing.Optional[Call]:
     line: str = document.lines[line_no]
     match = FUNC_CALL_RE.search(line)
     if not match:
@@ -67,8 +73,10 @@ def find_function_call_at_line(document: Document, line_no: int) -> typing.Optio
     script = get_script(document)
     infers: list[Name] = script.infer(jedi_line, jedi_column)
     for infer in infers:
-        if infer.type == "function" and (infer.module_path != Path(document.path) or infer.line != jedi_line):
-            return TextPosition(Position(line_no, start), Position(line_no, end), infer.name)
+        if infer.type in ["function", "class"] and (
+            infer.module_path != Path(document.path) or infer.line != jedi_line
+        ):
+            return Call(Position(line_no, start), Position(line_no, end), infer.name, infer.type)
     return None
 
 
@@ -97,16 +105,10 @@ def get_text_range_between_sources(original_source: str, new_source: str, origin
     return TextPosition(start, end, text)
 
 
-def is_a_class_def(document: Document, line_no: int) -> bool:
-    line: str = document.lines[line_no]
-    return line.lstrip().startswith("class ")
-
-
-def is_a_function_def(document: Document, line_no: int) -> bool:
-    line: str = document.lines[line_no]
-    return line.lstrip().startswith("def ")
-
-
 def is_a_return_statement(document: Document, line_no: int) -> bool:
     line: str = document.lines[line_no]
     return line.lstrip().startswith("return ")
+
+
+def camel_to_snake(text: str) -> str:
+    return CAMEL_TO_SNAKE_RE.sub("_", text).lower()

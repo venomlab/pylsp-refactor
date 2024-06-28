@@ -11,3 +11,9 @@ def something():
     return {
         "asd": get_foo(),
     }
+
+class FooBar:
+    pass
+
+def construct_foo_bar():
+    FooBar()
