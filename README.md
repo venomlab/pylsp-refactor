@@ -17,10 +17,6 @@ Then run `python-lsp-server` as usual, the plugin will be auto-discovered by
 `python-lsp-server` and your IDE/text editor documentation on how to setup
 `python-lsp-server`.
 
-## Configuration
-
-- `pylsp.plugins.pylsp_refactor.enabled` is `true` by default, you can change it to false to disable plugin completely
-
 ## Features
 
 This plugin adds the following features to `pylsp`:
@@ -38,6 +34,16 @@ Makes a new variable from a function call or class instantiation and tries to gu
 
 Additionally, it moves newly created variable out of block if it's happening
 somewhere inside dict initialization or class instantiation
+
+## Configuration
+
+- `pylsp.plugins.pylsp_refactor.enabled` is `true` by default, you can change it to false to disable plugin completely
+
+## Caveat
+
+This plugin is in early development, so expect some bugs.
+Please report in [Issue tracker](https://github.com/venomlab/pylsp-refactor/issues)
+if you had any issues with the plugin
 
 ## Developing
 
