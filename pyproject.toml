@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pylsp-refactor"
-version = "0.1.0"
+version = "0.2.0a1"
 description = "Refactoring tools for python-lsp-server"
 authors = ["Dmytro Selishchev <zibertscrem@gmail.com>"]
 repository = "https://github.com/venomlab/pylsp-refactor"
