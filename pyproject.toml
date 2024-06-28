@@ -3,6 +3,7 @@ name = "pylsp-refactor"
 version = "0.1.0a1"
 description = "Refactoring tools for python-lsp-server"
 authors = ["Dmytro Selishchev <zibertscrem@gmail.com>"]
+repository = "https://github.com/venomlab/pylsp-refactor"
 license = "MIT"
 readme = "README.md"
 
