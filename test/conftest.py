@@ -5,14 +5,13 @@ from unittest.mock import Mock
 import pytest
 from pylsp import uris
 from pylsp.config.config import Config
-from pylsp.workspace import Workspace, Document
-
+from pylsp.workspace import Document, Workspace
 
 here = Path(__file__).parent
 fixtures_dir = here / "fixtures"
 
 
-@pytest.fixture
+@pytest.fixture()
 def config(workspace):
     """Return a config object."""
     cfg = Config(workspace.root_uri, {}, 0, {})
@@ -23,12 +22,15 @@ def config(workspace):
                 "args": [],
                 "executable": None,
             },
+            "pylsp_refactor": {
+                "enabled": True,
+            },
         },
     }
     return cfg
 
 
-@pytest.fixture
+@pytest.fixture()
 def workspace(tmpdir):
     """Return a workspace."""
     ws = Workspace(uris.from_fs_path(str(tmpdir)), Mock())
@@ -36,12 +38,12 @@ def workspace(tmpdir):
     return ws
 
 
-@pytest.fixture
+@pytest.fixture()
 def document(workspace):
     return create_document(workspace, "simple.py")
 
 
-@pytest.fixture
+@pytest.fixture()
 def code_action_context():
     # https://microsoft.github.io/language-server-protocol/specifications/specification-3-17/#codeActionKind
     code_action_kind = [
