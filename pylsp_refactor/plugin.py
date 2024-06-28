@@ -27,7 +27,7 @@ def pylsp_settings() -> dict[str, dict[str, dict[str, bool]]]:
 @hookimpl
 def pylsp_commands(
     config: Any,
-    workspace: Workspace,
+    workspace: Workspace,  # noqa: ARG001
 ) -> list[str]:
     return code_actions.commands(config)
 
