@@ -1,7 +1,5 @@
 # pylsp-refactor
 
-**WORK IN PROGRESS. IT DOES NOT HAVE ANY STABLE VERSION YET**
-
 Refactoring tools for Python LSP Server
 
 This is a plugin for [Python LSP Server](https://github.com/python-lsp/python-lsp-server).
@@ -10,7 +8,7 @@ This is a plugin for [Python LSP Server](https://github.com/python-lsp/python-ls
 
 To use this plugin, you need to install this plugin in the same virtualenv as python-lsp-server itself.
 
-``` bash
+```bash
 pip install pylsp-refactor
 ```
 
@@ -21,55 +19,33 @@ Then run `python-lsp-server` as usual, the plugin will be auto-discovered by
 
 ## Configuration
 
-... TODO ...
+- `pylsp.plugins.pylsp_refactor.enabled` is `true` by default, you can change it to false to disable plugin completely
 
 ## Features
 
 This plugin adds the following features to `pylsp`:
 
-- ... TODO ...
+Code Action:
+
+- introduce variable
+
+## Usage
+
+### Introduce variable
+
+When CodeAction is triggered and the cursor is on a line where function call or class instantiation is presented.
+Makes a new variable from a function call or class instantiation and tries to guess a name for it if possible.
+
+Additionally, it moves newly created variable out of block if it's happening
+somewhere inside dict initialization or class instantiation
 
 ## Developing
 
-Install development dependencies with (you might want to create a virtualenv first):
-
-``` bash
-git clone  pylsp-refactor
-cd pylsp-refactor
-pip install -e '.[dev]'
-```
-
-### Enabling logging
-
-To enable logging in pylsp:
-
-    pylsp -v --log-file /tmp/pylsp.log
-
-### Enabling tcp mode
-
-Normally, editors communicate with language servers through standard
-input/output. Optionally, you can run pylsp in tcp mode if you want to be able
-to use the standard input/output, for example so you can use IPython or pudb,
-using the --tcp flag:
-
-    pylsp -v --log-file /tmp/pylsp.log --tcp --port 7090
-
-Consult your lsp client documentation on how to connect to tcp-mode language
-server, but if it doesn't support connecting to a language server via TCP, then
-usually can configure `netcat`/`nc` to be your "language server" that will
-proxy requests to a tcp-mode language server:
-
-    nc localhost 7090
-
-TODO: document how to connect to pylsp via pylsp from LSP clients.
-
-### Testing 
-
-Run `pytest` to run plugin tests.
+See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## Credits
 
 This package was created with
-[Cookiecutter](https://github.com/audreyr/cookiecutter) from 
+[Cookiecutter](https://github.com/audreyr/cookiecutter) from
 [python-lsp/cookiecutter-pylsp-plugin](https://github.com/python-lsp/cookiecutter-pylsp-plugin)
 project template.
